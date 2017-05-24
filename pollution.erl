@@ -40,12 +40,12 @@ addValue(Pos={_,_}, DateTime, TypeMeasur, Value, Monitor) ->
         Name -> addValue(Name, DateTime, TypeMeasur, Value, Monitor)
     end;
 
-addValue(Name, {DateMeasur, TimeMeasur}, TypeMeasur, Value, Monitor) ->
+addValue(Name, {DateMeasur, TimeMeasur}=DateTime, TypeMeasur, Value, Monitor) ->
     try maps:get(Name, Monitor#monitor.nameToStation) of Station ->
         Date = maps:get(TypeMeasur, Station#station.mapTypeToDay, #{}),
         Time = maps:get(DateMeasur, Date, #{}),
         case maps:is_key(TimeMeasur, Time) of
-            true -> {error, meansurment_exist};
+            true -> {error, {meansurment_exist, Name, DateTime, TypeMeasur, Value}};
             false -> 
                 UpdateTime = maps:put(TimeMeasur, Value, Time),
                 UpdateDate = maps:put(DateMeasur, UpdateTime, Date),
@@ -73,21 +73,25 @@ removeValue(Name, {DateMeasur, TimeMeasur}, TypeMeasur, Monitor) ->
             try maps:get(TypeMeasur, Station#station.mapTypeToDay) of Date ->
                 try maps:get(DateMeasur, Date) of Time ->
                     UpdateTime = maps:remove(TimeMeasur, Time),
-                    UpdateDate = maps:put(DateMeasur, UpdateTime, Date),
-                    UpdateType = maps:put(TypeMeasur, UpdateDate, Station#station.mapTypeToDay),
+                    TimeSize = maps:size(UpdateTime),
+                    if  TimeSize > 0 -> UpdateDate = maps:put(DateMeasur, UpdateTime, Date);
+                        true -> UpdateDate = maps:remove(DateMeasur, Date)
+                    end,
+                    DateSize = maps:size(UpdateDate),
+                    if  DateSize > 0 -> UpdateType = maps:put(TypeMeasur, UpdateDate, Station#station.mapTypeToDay);
+                        true -> UpdateType = maps:remove(TypeMeasur, Station#station.mapTypeToDay)
+                    end,
                     NewStation = #station{mapTypeToDay=UpdateType},
                     N = maps:put(Name, NewStation, Monitor#monitor.nameToStation),
                     Monitor#monitor{nameToStation=N}
                 catch
-                    error:E -> {error,{unknown_date, E}}
+                    error:E -> {error,{unknown_date, Date, E}}
                 end
             catch
-                error:E -> {error,{unknown_type, E}}
+                error:E -> {error,{unknown_type, TypeMeasur, E}}
             end
     end.
 
-getOneValue(TypeMeasur, DateTime, Pos={_,_}, Monitor) ->
-  getOneValue(Pos, DateTime, TypeMeasur, Monitor);
 
 getOneValue(Pos={_,_}, DateTime, TypeMeasur, Monitor) ->
     case getName(Pos, Monitor) of
@@ -104,19 +108,17 @@ getOneValue(Name, {DateMeasur, TimeMeasur}, TypeMeasur, Monitor) ->
                     try maps:get(TimeMeasur, Time) of
                         Val -> Val
                     catch
-                        error:E -> {error, {unknown_time, E}}
+                        error:E -> {error, {unknown_time, TimeMeasur, E}}
                     end
                 catch
-                    error:E -> {error, {unknown_date, E}}
+                    error:E -> {error, {unknown_date, DateMeasur, E}}
                 end
             catch
-                error:E -> {error, {unknown_type, E}}
+                error:E -> {error, {unknown_type, TypeMeasur, E}}
             end
     end.
 
 
-getStationMean(TypeMeasur, Pos={_,_}, Monitor) ->
-  getStationMean(Pos, TypeMeasur, Monitor);
 
 getStationMean(Pos={_,_}, TypeMeasur, Monitor) ->
     case getName(Pos, Monitor) of
@@ -146,8 +148,6 @@ getStationMean(Name, TypeMeasur, Monitor) ->
     end.
         
 
-getDailyMean(TypeMeasur, Date={_,_,_}, Monitor) ->
-  getDailyMean(Date, TypeMeasur, Monitor);
 
 getDailyMean(Date, TypeMeasur, Monitor) ->
     AverageStation = 
@@ -203,7 +203,7 @@ getHourlyStationData(Name, TypeMeasur, Monitor) ->
                     end,
                 maps:fold(DataToAvrList, [], DateMap)
             catch
-                error:E -> {error, {unknown_type, E}}
+                error:E -> {error, {unknown_type, TypeMeasur, E}}
             end
     end.
 
@@ -217,7 +217,7 @@ getName(Pos, Monitor) ->
     try maps:get(Pos, Monitor#monitor.posToName) of
         Val -> Val
     catch
-        error:E -> {error, {unknown_position, E}}
+        error:E -> {error, {unknown_position, Pos, E}}
     end.
 
 
@@ -225,7 +225,7 @@ getStation(StationName, Monitor) ->
     try maps:get(StationName, Monitor#monitor.nameToStation) of
         Val -> Val
     catch
-        error:E -> {error, {unknown_station, E}}
+        error:E -> {error, {unknown_station, StationName, E}}
     end.
 
 

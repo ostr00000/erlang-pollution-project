@@ -1,0 +1,6 @@
+#!/bin/bash
+
+elixirc *.ex
+erlc *.erl
+./timeOfAdd
+

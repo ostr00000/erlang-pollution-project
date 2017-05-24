@@ -32,12 +32,19 @@ defmodule PollutionData do
     def addDataToServer() do
         m = PollutionData.importLinesFromCSV()
         s = PollutionData.identifyStations(m)
-        fn -> PollutionData.addDataToServer(m, s) end |> :timer.tc #|> elem(0)
+        fn -> PollutionData.addDataToServer(m, s) end |> :timer.tc |> elem(0)
     end
 
     def addDataToServer(listOfMeasurments, mapOfStations) do
-        Enum.map(mapOfStations, fn({cords, name}) -> :rPollution.addStation(name, cords) end)
-        Enum.map(listOfMeasurments, fn({dateTime, cords, val}) -> :rPollution.addValue(cords, dateTime, "PM10", val) end)
+        st = Enum.map(mapOfStations, fn({cords, name}) -> :rPollution.addStation(name, cords) end)
+        me = Enum.map(listOfMeasurments, fn({dateTime, cords, val}) -> :rPollution.addValue(cords, dateTime, "PM10", val) end)
+        {st, me}
+    end
+
+    def findError({station, measurments}) do
+        station = Enum.filter(station, &(&1 != :ok))
+        measurments = Enum.filter(measurments, &(&1 != :ok))
+        {station, measurments}
     end
 
 end

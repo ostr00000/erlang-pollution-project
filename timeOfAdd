@@ -1,0 +1,7 @@
+#!/usr/bin/env elixir
+
+:io.format("script run\n")
+:pollutionSupervisor.start_link()
+t = PollutionData.addDataToServer()
+IO.puts "time of adding = #{t}"
+

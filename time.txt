@@ -1,1 +1,24 @@
-addDataToServer = 17469 ms
+PollutionData.addDataToServer() = 17469 ms
+:rPollution.getDailyMean("PM10", {2017,5,3})
+66.69898305084746
+:rPollution.getDailyMean("PM10", {2017,5,4})
+66.44455747711089
+:rPollution.getStationMean("PM10", {19.992,50.081})
+80.5625
+:rPollution.getStationMean("PM10", {19.915,50.097})  
+13.0
+:rPollution.getStationMean("PM10", {19.844,50.021})
+71.6875
+:rPollution.getStationMean("PM10", {19.647,50.051})
+85.70833333333333
+:rPollution.getStationMean("PM10", {19.808,50.094})
+76.91666666666667
+:rPollution.getStationMean("PM10", {20.034,50.118})
+75.5625
+:rPollution.getStationMean("PM10", {19.856,50.119})
+37.40714285714286
+:rPollution.getStationMean("PM10", {19.966, 50.120})
+48.34736842105263
+:rPollution.getOneValue("PM10", {{2017, 5, 3}, {0, 48,0}}, {19.844,50.021})
+100
+
