@@ -20,8 +20,8 @@
         getStationMean/2,
         getDailyMean/2,
         getHourlyStationData/2,
-        stop/0,
-        tests/0]).
+        stop/0,getStruct/0,
+        tests/0, crash/0]).
 
 %% gen_server callbacks
 -export([init/1,
@@ -38,6 +38,9 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
+crash() ->
+  F = fun(A) -> A div A end,
+  F(0).
 
 tests() ->
     DAY = {2013, 12, 1},
@@ -73,6 +76,7 @@ tests() ->
 -spec(start_link() ->
   {ok, Pid :: pid()} | ignore | {error, Reason :: term()}).
 start_link() ->
+  io:format("~p (~p) server start\n",[{global, ?MODULE},self()]),
   gen_server:start_link({local, ?SERVER}, ?MODULE, pollution:createMonitor(), []).
 
 %%%===================================================================
@@ -91,11 +95,11 @@ getOneValue(Name, DateTime, Type) ->
     gen_server:call(?MODULE, {getOneValue, Name, DateTime, Type}).
 getStationMean(Name, Type) ->
     gen_server:call(?MODULE, {getStationMean, Name, Type}).
-getDailyMean(Name, Type) ->
-    gen_server:call(?MODULE, {getDailyMean, Name, Type}).
+getDailyMean(Date, Type) ->
+    gen_server:call(?MODULE, {getDailyMean, Date, Type}).
 getHourlyStationData(Name, Type) ->
     gen_server:call(?MODULE, {getHourlyStationData, Name, Type}).
-
+getStruct() -> gen_server:call(?MODULE, getStruct).
 
 %%--------------------------------------------------------------------
 %% @private
@@ -134,6 +138,7 @@ is_error(ReturnedVal, {ret, OldVal}) -> {reply, ReturnedVal, OldVal};
 is_error({error, _}=Err, OldVal) -> {reply, Err, OldVal};
 is_error(NewVal, _) -> {reply, ok, NewVal}.
 
+handle_call(getStruct,_From, State) ->{reply, State,State};
 
 handle_call({addStation, Name, Pos}, _From, State) ->
     is_error(pollution:addStation(Name, Pos, State), State);
@@ -150,8 +155,8 @@ handle_call({getOneValue, Name, DateTime, Type}, _From, State) ->
 handle_call({getStationMean, Name, Type}, _From, State) ->
     is_error(pollution:getStationMean(Name, Type, State), {ret, State});
 
-handle_call({getDailyMean, Name, Type}, _From, State) ->
-    is_error(pollution:getDailyMean(Name, Type, State), {ret, State});
+handle_call({getDailyMean, Date, Type}, _From, State) ->
+    is_error(pollution:getDailyMean(Date, Type, State), {ret, State});
 
 handle_call({getHourlyStationData, Name, Type}, _From, State) ->
     is_error(pollution:getHourlyStationData(Name, Type, State), {ret, State}).

@@ -1,0 +1,7 @@
+c("pollution.erl")
+c("pollutionSupervisor.erl")
+c("rPollution.erl")
+c("PollutionData.ex")
+:pollutionSupervisor.start_link()
+PollutionData.addDataToServer()
+
