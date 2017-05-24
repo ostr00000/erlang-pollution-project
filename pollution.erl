@@ -93,6 +93,9 @@ removeValue(Name, {DateMeasur, TimeMeasur}, TypeMeasur, Monitor) ->
     end.
 
 
+getOneValue(TypeMeasur, DateTime, Pos={_,_}, Monitor) ->
+    getOneValue(Pos, DateTime, TypeMeasur, Monitor);
+
 getOneValue(Pos={_,_}, DateTime, TypeMeasur, Monitor) ->
     case getName(Pos, Monitor) of
         E={error, _} -> E;
@@ -118,7 +121,8 @@ getOneValue(Name, {DateMeasur, TimeMeasur}, TypeMeasur, Monitor) ->
             end
     end.
 
-
+getStationMean(TypeMeasur, Pos={_,_}, Monitor) ->
+    getStationMean(Pos, TypeMeasur, Monitor);
 
 getStationMean(Pos={_,_}, TypeMeasur, Monitor) ->
     case getName(Pos, Monitor) of
@@ -146,8 +150,10 @@ getStationMean(Name, TypeMeasur, Monitor) ->
                 error:_ -> 0.0
             end
     end.
-        
 
+
+getDailyMean(TypeMeasur, Date={_,_,_}, Monitor) ->
+    getDailyMean(Date, TypeMeasur, Monitor);
 
 getDailyMean(Date, TypeMeasur, Monitor) ->
     AverageStation = 
